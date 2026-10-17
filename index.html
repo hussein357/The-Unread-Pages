@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Unread Pages</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,500;1,300;1,500&family=Inter:wght@300;400;500&family=Caveat:wght@500&display=swap">
+<style>
+:root{--bg:#0a0908;--ch:#171513;--iv:#efe8d8;--gr:#9a948a;--am:#d9a24e;--paper:#e9dfc8;--ink:#2a2118;--serif:"Cormorant Garamond",Georgia,serif;--sans:Inter,system-ui,sans-serif;--hand:Caveat,"Segoe Print",cursive;--e:cubic-bezier(.2,.7,.1,1)}
+*{box-sizing:border-box;margin:0}
+html{scroll-behavior:smooth;background:var(--bg)}
+body{background:var(--bg);color:var(--iv);font:300 1.05rem/1.7 var(--sans);overflow-x:hidden}
+body.lock{overflow:hidden;height:100%}
+:focus-visible{outline:2px solid var(--am);outline-offset:4px}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+h1,h2,h3{font-family:var(--serif);font-weight:300;line-height:1.05}
+.grain{position:fixed;inset:0;z-index:90;pointer-events:none;opacity:.09;mix-blend-mode:overlay;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");animation:gr 1s steps(4) infinite}
+@keyframes gr{25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}}
+#dust{position:fixed;inset:0;z-index:1;pointer-events:none;width:100%;height:100%}
+/* intro */
+#intro{position:fixed;inset:0;z-index:100;background:radial-gradient(ellipse at 70% 15%,#2a1c0c 0,#0a0908 55%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;text-align:center;padding:1.5rem;transition:opacity 1.4s ease,visibility 1.4s}
+#intro.gone{opacity:0;visibility:hidden}
+.glow{position:absolute;top:-10%;right:5%;width:50vmax;height:50vmax;background:radial-gradient(circle,rgba(217,162,78,.22),transparent 60%);filter:blur(30px);opacity:0;animation:fi 4s .5s forwards}
+.book{perspective:1200px;width:min(46vw,190px);aspect-ratio:3/4;opacity:0;animation:fi 3s 1.2s forwards;transform:translateY(10px)}
+.cover{position:relative;width:100%;height:100%;transform-origin:left center;transform-style:preserve-3d;transition:transform 1.8s var(--e);background:linear-gradient(135deg,#3a2a1c,#1c140d 70%);border-radius:3px 8px 8px 3px;box-shadow:0 30px 60px #000,inset 4px 0 8px #000,inset 0 0 0 1px #5a432c;z-index:2}
+.cover::before{content:"";position:absolute;inset:14px 14px 14px 22px;border:1px solid rgba(217,162,78,.35)}
+.cover::after{content:"";position:absolute;left:10px;top:0;bottom:0;width:3px;background:rgba(0,0,0,.5)}
+.book .in{position:absolute;inset:0;background:var(--paper);border-radius:2px 6px 6px 2px;z-index:1;box-shadow:0 0 0 0 rgba(217,162,78,0);transition:box-shadow 1.8s}
+.opening .cover{transform:rotateY(-155deg)}
+.opening .in{box-shadow:0 0 120px 40px rgba(217,162,78,.7)}
+.lab{font:400 .7rem var(--sans);letter-spacing:.3em;color:var(--gr);opacity:0;animation:fi 2s 3s forwards}
+#intro h1{font-size:clamp(2.4rem,9vw,5.5rem);letter-spacing:.14em;opacity:0;animation:fi 3s 4s forwards;filter:blur(8px);animation-name:fb}
+@keyframes fb{to{opacity:1;filter:blur(0)}}
+@keyframes fi{to{opacity:1;transform:none}}
+.tag{font:italic 300 clamp(1.1rem,3vw,1.5rem) var(--serif);color:var(--gr);opacity:0;animation:fi 2.5s 6s forwards}
+.btn{border:1px solid rgba(239,232,216,.4);padding:.9rem 2rem;letter-spacing:.3em;font-size:.72rem;transition:.4s var(--e);position:relative;overflow:hidden}
+.btn:hover{border-color:var(--am);color:var(--am);letter-spacing:.38em}.btn:active{transform:scale(.97)}
+#enter{opacity:0;animation:fi 2s 7.5s forwards;margin-top:.8rem}
+#skip{position:absolute;bottom:1.5rem;right:1.5rem;font-size:.72rem;letter-spacing:.2em;color:var(--gr);padding:.6rem}
+#skip:hover{color:var(--iv)}
+/* chrome */
+#bar{position:fixed;top:0;left:0;height:2px;width:0;background:var(--am);z-index:80}
+#menub{position:fixed;top:1rem;right:1rem;z-index:85;font-size:.72rem;letter-spacing:.25em;padding:.7rem 1rem;mix-blend-mode:difference;color:#fff}
+#nav{position:fixed;inset:0;z-index:84;background:rgba(10,9,8,.96);display:flex;flex-direction:column;justify-content:center;padding:0 8vw;opacity:0;visibility:hidden;transition:.6s}
+#nav.open{opacity:1;visibility:visible}
+#nav a{font:300 clamp(1.4rem,4.5vw,2.4rem)/1.5 var(--serif);color:var(--gr);text-decoration:none;transition:.4s;width:fit-content}
+#nav a:hover,#nav a.cur{color:var(--iv);padding-left:1rem}
+#nav a.cur{color:var(--am)}
+#turn{position:fixed;inset:0;z-index:95;background:var(--paper);transform:translateX(101%);pointer-events:none;box-shadow:-40px 0 60px rgba(0,0,0,.6)}
+#turn.go{animation:tn 1.1s var(--e)}
+@keyframes tn{0%{transform:translateX(101%)}45%,55%{transform:translateX(0)}100%{transform:translateX(-101%)}}
+main{position:relative;z-index:2}
+section{min-height:100svh;padding:12vh 6vw;display:flex;flex-direction:column;justify-content:center;position:relative}
+.big{font-size:clamp(2.6rem,8.5vw,7.5rem);max-width:14ch}
+.w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.12em}
+.w>span{display:inline-block;transform:translateY(105%);transition:transform 1.1s var(--e)}
+.vis .w>span{transform:none}
+.rv{opacity:0;transform:translateY(24px);transition:opacity 1.4s,transform 1.4s var(--e)}
+.vis .rv,.rv.vis{opacity:1;transform:none}
+.intro-p{max-width:34rem;margin-top:3rem;color:var(--gr);font-size:1.15rem}
+.ctitle{font:400 .75rem var(--sans);letter-spacing:.3em;color:var(--am);margin-bottom:1.5rem}
+/* diary page */
+.pg{display:grid;grid-template-columns:minmax(0,1fr);gap:3rem;align-items:center;max-width:1100px;margin:0 auto;width:100%}
+@media(min-width:900px){.pg{grid-template-columns:1.15fr .85fr}.pg:nth-of-type(odd){}.alt .pg{grid-template-columns:.85fr 1.15fr}.alt .paper{order:2}}
+.paper{background:var(--paper) repeating-linear-gradient(transparent 0 1.85rem,rgba(80,60,40,.18) 1.85rem 1.9rem);color:var(--ink);padding:2.6rem 2rem 2.6rem 3.4rem;position:relative;font:500 1.4rem/1.9rem var(--hand);box-shadow:0 40px 80px rgba(0,0,0,.7),inset 0 0 90px rgba(120,80,30,.25);transform:rotate(-.8deg);border-radius:2px 6px 6px 2px}
+.alt .paper{transform:rotate(.9deg)}
+.paper::before{content:"";position:absolute;left:2.4rem;top:0;bottom:0;width:1px;background:rgba(170,60,50,.45)}
+.date{font-size:1.1rem;opacity:.65;margin-bottom:.6rem}
+.paper p{margin-bottom:1.9rem}
+.note{color:#9c3a2c;font-size:1.15rem;display:inline-block;transform:rotate(-2deg);position:relative}
+.note::after{content:"";position:absolute;left:0;bottom:-2px;height:2px;width:0;background:#9c3a2c;transition:width 1.4s .6s var(--e)}
+.vis .note::after{width:100%}
+.why h3{font-size:clamp(1.8rem,4vw,2.8rem);margin-bottom:1rem}
+.why p{color:var(--gr);margin-bottom:1rem;max-width:30rem}
+.why small{display:block;font-size:.72rem;letter-spacing:.2em;color:var(--am);margin-bottom:1rem}
+.turnb{margin-top:1.5rem;color:var(--iv);font:italic 1.2rem var(--serif);border-bottom:1px solid var(--am);padding-bottom:.2rem}
+.turnb:hover{color:var(--am)}
+#dreams{background:linear-gradient(#0a0908,#2a1d10 45%,#6b4a24 80%,#b98a4a)}
+#dreams .why p,#dreams .why small{color:#efe3cb}
+#dreams .turnb{color:#fff}
+#six{background:#070606}
+.q{min-height:100svh}
+/* thoughts */
+#things{align-items:center;text-align:center}
+#thought{font:italic 300 clamp(1.8rem,5.5vw,4rem)/1.2 var(--serif);max-width:20ch;min-height:5.5em;display:flex;align-items:center;transition:opacity .6s,filter .6s}
+#thought.out{opacity:0;filter:blur(8px)}
+.pile{display:flex;flex-wrap:wrap;gap:.6rem;justify-content:center;max-width:52rem;margin:2rem 0}
+.pile button{border:1px solid rgba(239,232,216,.2);padding:.4rem .9rem;font-size:.8rem;color:var(--gr);border-radius:99px;transition:.3s}
+.pile button:hover,.pile button.on{border-color:var(--am);color:var(--am)}
+.fict{font-size:.8rem;color:var(--gr);max-width:28rem}
+#final{align-items:center;text-align:center}
+#final .big{max-width:16ch;margin:2rem auto}
+.fin{font:italic 300 clamp(1.5rem,4vw,2.6rem) var(--serif);color:var(--am);max-width:22ch;margin:3rem auto 0}
+#cred{text-align:center;align-items:center;min-height:80svh}
+#cred h2{font-size:clamp(1.8rem,5vw,3.4rem)}
+#cred p{color:var(--gr);letter-spacing:.2em;font-size:.8rem;margin-top:.8rem}
+.cur-d{position:fixed;width:34px;height:34px;border:1px solid var(--am);border-radius:50%;pointer-events:none;z-index:99;transform:translate(-50%,-50%);transition:width .3s,height .3s,opacity .3s;opacity:0}
+@media(hover:none),(pointer:coarse){.cur-d{display:none}}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01s!important;animation-delay:0s!important;transition-duration:.01s!important;scroll-behavior:auto!important}.grain{animation:none}.w>span,.rv{transform:none}}
+</style></head><body class="lock">
+<div class="grain" aria-hidden="true"></div><canvas id="dust" aria-hidden="true"></canvas><div class="cur-d" id="cur"></div>
+
+<div id="intro" role="dialog" aria-label="Opening">
+<div class="glow"></div>
+<div class="book" id="book" aria-hidden="true"><div class="in"></div><div class="cover"></div></div>
+<p class="lab">AEI · GRADE 11 ENGLISH PROJECT</p>
+<h1>THE UNREAD PAGES</h1>
+<p class="tag">Some thoughts are too loud to say out loud.</p>
+<button class="btn" id="enter">ENTER THE DIARY</button>
+<button id="skip">SKIP</button>
+</div>
+
+<div id="bar"></div>
+<button id="menub" aria-expanded="false" aria-controls="nav">MENU</button>
+<nav id="nav" aria-label="Chapters"></nav>
+<div id="turn" aria-hidden="true"></div>
+
+<main>
+<section id="question" data-t="The question" class="q">
+<h2 class="big split">What would you find if you could read a teenager’s mind?</h2>
+<p class="intro-p rv">A diary is where a teenager says what the day would not allow. Fear of disappointing a parent, a message left on “seen”, a crush never mentioned aloud: these are hard to say to a face, so they are written down. This project follows the six themes most likely to fill those pages. The entries are fictional, written for this project. The notes beside them are factual commentary.</p>
+<button class="turnb rv" data-go="p1">Open the first page</button>
+</section>
+
+<section id="p1" data-t="I. School pressure"><div class="pg">
+<div class="paper rv"><div class="date">Sunday 11 May, 11:48 pm</div>
+<p>Chemistry test on Tuesday. I have opened the same chapter four times and read the same paragraph four times.</p>
+<p>Mama asked at dinner how school was. I said “fine.” It isn’t, but fine is easier than watching her face change. Baba keeps saying he only wants my best. I believe him. That’s the problem. I don’t know what my best is supposed to look like.</p>
+<p>Tomorrow I’ll start properly. <span class="note">(I said that yesterday.)</span></p></div>
+<div class="why rv"><small>THE FIRST PAGE</small><h3>School pressure</h3><p>Exams, grades and family expectations take up much of a teenager’s week, so they take up much of the diary. Writers rarely describe the work itself. They describe the fear around it: procrastination as avoidance, and a confident face worn for everyone else.</p><button class="turnb" data-go="p2">Turn the page</button></div></div></section>
+
+<section id="p2" data-t="II. Friendship and belonging" class="alt"><div class="pg">
+<div class="paper rv"><div class="date">Tuesday 20 May, 4:15 pm</div>
+<p>Rana left my message on “seen” for three hours. Then she posted a story with Lina.</p>
+<p>The group chat moved on to a joke I didn’t understand, so I sent a laughing emoji anyway. Nobody noticed. That’s the strange part: I’m in the chat and still feel like I’m outside it.</p>
+<p>Maybe she was busy. <span class="note">Maybe I’m the one who changed.</span></p></div>
+<div class="why rv"><small>THE SECOND PAGE</small><h3>Friendship and belonging</h3><p>At this age, friends often matter more than anyone else’s opinion. Group chats make closeness visible, and so they make exclusion visible too. Misunderstandings that once faded by tomorrow now sit on a screen with a timestamp.</p><button class="turnb" data-go="p3">Turn the page</button></div></div></section>
+
+<section id="p3" data-t="III. Love and crushes"><div class="pg">
+<div class="paper rv"><div class="date">Friday 30 May, 9:02 pm</div>
+<p>I said “hi” to him today. Just hi. My voice came out like it belonged to someone else.</p>
+<p>He smiled and asked about the Arabic homework. We talked for ninety seconds. I have replayed it two hundred times and found three things I should have said.</p>
+<p>If he doesn’t feel the same, I’ll survive. <span class="note">I think. Probably.</span></p></div>
+<div class="why rv"><small>THE THIRD PAGE</small><h3>Love and crushes</h3><p>A first crush is a new and intense feeling with no instructions. Diaries hold what is too risky to say aloud: the replayed conversation, the hope, the fear of rejection. Writing it down makes it easier to look at calmly.</p><button class="turnb" data-go="p4">Turn the page</button></div></div></section>
+
+<section id="p4" data-t="IV. Identity and insecurity" class="alt"><div class="pg">
+<div class="paper rv"><div class="date">Monday 9 June, 1:10 am</div>
+<p>I scrolled for an hour and ended up knowing everyone’s best day and my own worst one.</p>
+<p>I know they edit those photos. I know. It still works on me. Last year I liked different music and a different laugh. Which one was real?</p>
+<p>Maybe the real me is just the one I haven’t finished building. <span class="note">Ask: who decided I was done?</span></p></div>
+<div class="why rv"><small>THE FOURTH PAGE</small><h3>Identity and insecurity</h3><p>Adolescence is when people ask who they are. Social media adds constant comparison, and the diary becomes a place to try out versions of the self without an audience.</p><button class="turnb" data-go="dreams">Turn the page</button></div></div></section>
+
+<section id="dreams" data-t="V. Dreams and the future"><div class="pg">
+<div class="paper rv"><div class="date">Saturday 21 June, 6:20 am</div>
+<p>I woke up early and watched the sun reach the wall. I want to build something that is mine. I don’t fully know what yet.</p>
+<p>My parents hope for something safe. I understand why. They have seen how hard things can get. But I’m scared that safe and mine are two different roads.</p>
+<p>I might fail. <span class="note">I’d rather fail at something I chose.</span></p></div>
+<div class="why rv"><small>THE FIFTH PAGE</small><h3>Dreams and the future</h3><p>Teenagers write about careers, independence and family hopes together, because the future feels like one big decision. Fear of failure and ambition sit side by side, and the diary is where both are allowed.</p><button class="turnb" data-go="six">Turn the page</button></div></div></section>
+
+<section id="six" data-t="VI. Thoughts nobody hears" class="alt"><div class="pg">
+<div class="paper rv" style="background-color:#cfc5ad"><div class="date">Thursday 3 July, 2:30 am</div>
+<p>Awake again. My mind keeps running conversations that never happened.</p>
+<p>At school I was loud and everyone laughed. At home I said “I’m tired.” Nobody asked what kind of tired. I’m not sure I would have known how to answer.</p>
+<p>I think I need someone to ask twice. <span class="note">Maybe tomorrow I’ll tell Mama something real.</span></p></div>
+<div class="why rv"><small>THE SIXTH PAGE</small><h3>Thoughts nobody hears</h3><p>Many teenagers show one face in public and feel another in private. That gap is normal, but it can feel lonely. Privacy is healthy, and so is eventually sharing the heavier thoughts. If they stay heavy, talk to a parent, teacher, counselor or someone you trust.</p><button class="turnb" data-go="things">Turn the page</button></div></div></section>
+
+<section id="things" data-t="The things we never say">
+<p class="ctitle">THE THINGS WE NEVER SAY</p>
+<div id="thought" aria-live="polite">I wish people knew how hard I try.</div>
+<div class="pile" id="pile"></div>
+<p class="fict">These are fictional thoughts written for this project. They are not real student submissions.</p>
+<button class="turnb" data-go="final" style="margin-top:2rem">Turn to the final page</button>
+</section>
+
+<section id="final" data-t="The final page">
+<h2 class="big split">A diary is more than a record of the day.</h2>
+<p class="intro-p rv" style="margin-inline:auto">It is where a teenager works out identity, sorts out feelings, protects hopes, and makes sense of growing up. The pressure, the friendships, the crushes, the comparison, the dreams and the quiet nights are different pages of one story. Every teenager has an inner world that others do not always see. The diary gives that world a voice.</p>
+<p class="fin rv">A diary is where a teenager is allowed to be unfinished.</p>
+</section>
+
+<section id="cred" data-t="Credits">
+<p class="ctitle rv">THE UNREAD PAGES</p>
+<h2 class="rv">Created by Hussein Khatib</h2>
+<p class="rv">Grade 11</p><p class="rv">AEI — Martyrs of Iklem</p>
+<button class="turnb rv" id="top" style="margin-top:3rem">Close the diary</button>
+</section>
+</main>
+
+<script>
+(function(){
+var rm=matchMedia('(prefers-reduced-motion:reduce)').matches,$=function(s){return document.querySelector(s)},all=function(s){return [].slice.call(document.querySelectorAll(s))};
+/* dust */
+var cv=$('#dust'),cx=cv.getContext('2d'),P=[],W,H;
+function rs(){W=cv.width=innerWidth;H=cv.height=innerHeight}rs();addEventListener('resize',rs);
+for(var i=0;i<(innerWidth<600?35:70);i++)P.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.4+.3,s:Math.random()*.25+.05,a:Math.random()*.5+.1,d:Math.random()*6});
+(function f(t){cx.clearRect(0,0,W,H);P.forEach(function(p){p.y-=p.s;p.x+=Math.sin(t/2000+p.d)*.15;if(p.y<-5){p.y=H+5;p.x=Math.random()*W}cx.fillStyle='rgba(235,200,140,'+p.a+')';cx.beginPath();cx.arc(p.x,p.y,p.r,0,6.3);cx.fill()});if(!rm||t<50)requestAnimationFrame(f)})(0);
+/* split headlines */
+all('.split').forEach(function(h){var t=h.textContent.split(' ');h.setAttribute('aria-label',h.textContent);h.innerHTML=t.map(function(w,i){return '<span class="w" aria-hidden="true"><span style="transition-delay:'+i*.09+'s">'+w+'</span></span> '}).join('')});
+/* reveal */
+var io=new IntersectionObserver(function(e){e.forEach(function(x){if(x.isIntersecting){x.target.classList.add('vis');if(x.target.tagName==='SECTION')x.target.querySelectorAll('.rv').forEach(function(r,i){r.style.transitionDelay=i*.25+'s'})}})},{threshold:.25});
+all('section,.rv').forEach(function(e){io.observe(e)});
+/* nav */
+var secs=all('section'),nav=$('#nav');
+nav.innerHTML=secs.map(function(s){return '<a href="#'+s.id+'" data-go="'+s.id+'">'+s.dataset.t+'</a>'}).join('');
+var mb=$('#menub');
+function tg(o){nav.classList.toggle('open',o);mb.setAttribute('aria-expanded',o);mb.textContent=o?'CLOSE':'MENU'}
+mb.onclick=function(){tg(!nav.classList.contains('open'))};
+addEventListener('keydown',function(e){if(e.key==='Escape')tg(false)});
+function go(id){tg(false);var t=$('#turn'),el=document.getElementById(id);if(!el)return;
+ if(rm){el.scrollIntoView();return}
+ t.classList.remove('go');void t.offsetWidth;t.classList.add('go');
+ setTimeout(function(){el.scrollIntoView({behavior:'instant'});el.focus&&el.setAttribute('tabindex','-1')},500);
+ setTimeout(function(){t.classList.remove('go')},1150)}
+document.addEventListener('click',function(e){var b=e.target.closest('[data-go]');if(b){e.preventDefault();go(b.dataset.go)}});
+$('#top').onclick=function(){go('question')};
+/* progress + current */
+function sc(){var h=document.documentElement,p=h.scrollTop/(h.scrollHeight-innerHeight);$('#bar').style.width=(p*100)+'%';var cur='';secs.forEach(function(s){if(s.getBoundingClientRect().top<innerHeight*.5)cur=s.id});all('#nav a').forEach(function(a){a.classList.toggle('cur',a.dataset.go===cur)})}
+addEventListener('scroll',sc,{passive:true});sc();
+/* intro */
+function enter(){var i=$('#intro');if(i.classList.contains('gone'))return;
+ if(!rm)$('#book').classList.add('opening');
+ setTimeout(function(){i.classList.add('gone');document.body.classList.remove('lock');scrollTo(0,0)},rm?0:1500);setTimeout(function(){i.style.display='none'},rm?100:3000)}
+$('#enter').onclick=enter;$('#skip').onclick=function(){$('#intro').classList.add('gone');document.body.classList.remove('lock');setTimeout(function(){$('#intro').style.display='none'},1500)};
+if(rm)all('#intro *').forEach(function(e){e.style.opacity=1;e.style.filter='none'});
+/* thoughts */
+var T=['I wish people knew how hard I try.','Sometimes I need advice, not judgment.','I am still figuring out who I am.','I laugh the loudest when I feel the smallest.','I’m not angry. I’m just tired of explaining.','I want to be proud of myself before I’m proud of my grades.','I reread my messages ten times before sending them.','Please ask me twice if I’m okay.'],pile=$('#pile'),th=$('#thought');
+T.forEach(function(t,i){var b=document.createElement('button');b.textContent='Thought '+(i+1);b.onclick=function(){all('.pile button').forEach(function(x){x.classList.remove('on')});b.classList.add('on');th.classList.add('out');setTimeout(function(){th.textContent=t;th.classList.remove('out')},rm?0:500)};pile.appendChild(b)});
+pile.firstChild.classList.add('on');
+/* cursor */
+var c=$('#cur');if(matchMedia('(hover:hover) and (pointer:fine)').matches&&!rm){addEventListener('mousemove',function(e){c.style.opacity=1;c.style.left=e.clientX+'px';c.style.top=e.clientY+'px'});document.addEventListener('mouseover',function(e){var on=e.target.closest('button,a');c.style.width=c.style.height=on?'56px':'34px'})}
+})();
+</script></body></html>
